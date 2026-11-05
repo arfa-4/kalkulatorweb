@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10172a">
+  <meta name="description" content="Kalkulator ilmiah dan grafik interaktif yang gratis, cepat, dan berjalan langsung di browser.">
+  <title>Orbit — Kalkulator Grafik</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Orbit, beranda">
+        <span class="brand-mark" aria-hidden="true">∿</span>
+        <span>orbit<span class="brand-dot">.</span></span>
+      </a>
+      <div class="topbar-caption"><span class="status-dot"></span> KALKULATOR GRAFIK INTERAKTIF</div>
+      <a class="github-link" href="https://github.com/arfa-4/kalkulatorweb" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <section class="workspace" aria-label="Kalkulator grafik">
+      <aside class="calculator panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">MODE ILMIAH</p>
+            <h1>Kalkulator</h1>
+          </div>
+          <button class="angle-toggle" id="angle-toggle" type="button" aria-label="Ubah mode sudut">RAD</button>
+        </div>
+
+        <div class="display">
+          <label class="sr-only" for="calc-input">Ekspresi matematika</label>
+          <input id="calc-input" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="Masukkan ekspresi" aria-describedby="calc-error">
+          <div class="result-row">
+            <span id="calc-error" class="calc-error" role="status" aria-live="polite"></span>
+            <output id="calc-result" for="calc-input">0</output>
+          </div>
+        </div>
+
+        <div class="keypad" id="keypad" aria-label="Tombol kalkulator">
+          <button class="key key-function" data-insert="sin(">sin</button>
+          <button class="key key-function" data-insert="cos(">cos</button>
+          <button class="key key-function" data-insert="tan(">tan</button>
+          <button class="key key-function" data-insert="sqrt(">√</button>
+          <button class="key key-function" data-insert="^">xʸ</button>
+          <button class="key key-function" data-action="clear">AC</button>
+          <button class="key key-function" data-insert="(">(</button>
+          <button class="key key-function" data-insert=")">)</button>
+          <button class="key key-function" data-insert="pi">π</button>
+          <button class="key key-function" data-insert="e">e</button>
+          <button class="key" data-insert="7">7</button>
+          <button class="key" data-insert="8">8</button>
+          <button class="key" data-insert="9">9</button>
+          <button class="key key-operator" data-insert="/">÷</button>
+          <button class="key key-function" data-insert="log(">log</button>
+          <button class="key" data-insert="4">4</button>
+          <button class="key" data-insert="5">5</button>
+          <button class="key" data-insert="6">6</button>
+          <button class="key key-operator" data-insert="*">×</button>
+          <button class="key key-function" data-insert="ln(">ln</button>
+          <button class="key" data-insert="1">1</button>
+          <button class="key" data-insert="2">2</button>
+          <button class="key" data-insert="3">3</button>
+          <button class="key key-operator" data-insert="-">−</button>
+          <button class="key key-function" data-action="backspace" aria-label="Hapus karakter terakhir">⌫</button>
+          <button class="key key-function" data-insert="Ans">Ans</button>
+          <button class="key" data-insert="0">0</button>
+          <button class="key" data-insert=".">.</button>
+          <button class="key key-operator" data-insert="+">+</button>
+          <button class="key key-equals" data-action="calculate" aria-label="Hitung">=</button>
+        </div>
+        <p class="keyboard-hint">Tekan <kbd>Enter</kbd> untuk menghitung</p>
+      </aside>
+
+      <section class="graph-panel panel" aria-labelledby="graph-title">
+        <div class="graph-heading">
+          <div>
+            <p class="eyebrow">VISUALISASI FUNGSI</p>
+            <h2 id="graph-title">Grafik</h2>
+          </div>
+          <div class="graph-tools">
+            <button class="icon-button" id="zoom-out" type="button" aria-label="Perkecil grafik" title="Perkecil">−</button>
+            <button class="icon-button" id="zoom-in" type="button" aria-label="Perbesar grafik" title="Perbesar">+</button>
+            <button class="reset-button" id="reset-view" type="button">Atur ulang</button>
+          </div>
+        </div>
+
+        <form class="expression-form" id="expression-form">
+          <label class="function-mark" for="expression-input">f(x)</label>
+          <input id="expression-input" type="text" autocomplete="off" spellcheck="false" placeholder="sin(x)">
+          <button class="plot-button" type="submit"><span aria-hidden="true">＋</span> Plot</button>
+        </form>
+        <p class="expression-help">Contoh: <code>sin(x)</code>, <code>x^2 - 3</code>, <code>1/x</code></p>
+
+        <div class="canvas-wrap">
+          <canvas id="graph" aria-label="Bidang koordinat grafik fungsi" role="img"></canvas>
+          <div class="graph-coordinate" id="coordinates">x: 0.00 &nbsp; y: 0.00</div>
+          <div class="canvas-hint">Seret untuk geser · scroll untuk zoom</div>
+        </div>
+
+        <div class="function-list-heading">
+          <span>FUNGSI AKTIF</span>
+          <button class="clear-functions" id="clear-functions" type="button">Hapus semua</button>
+        </div>
+        <ul class="function-list" id="function-list" aria-live="polite"></ul>
+      </section>
+    </section>
+
+    <footer class="footer"><span>Dibuat untuk menjelajah matematika.</span><span>Orbit Calculator <span class="footer-separator">·</span> Gratis &amp; open source</span></footer>
+  </main>
+  <script>
+    (() => {
+      "use strict";
+
+      const COLORS = ["#6ee7d2", "#a78bfa", "#fb923c", "#f472b6", "#60a5fa", "#facc15"];
+      const functions = {
+        sin: Math.sin, cos: Math.cos, tan: Math.tan,
+        asin: Math.asin, acos: Math.acos, atan: Math.atan,
+        sinh: Math.sinh, cosh: Math.cosh, tanh: Math.tanh,
+        sqrt: Math.sqrt, cbrt: Math.cbrt, abs: Math.abs,
+        ln: Math.log, log: Math.log10, log2: Math.log2,
+        exp: Math.exp, floor: Math.floor, ceil: Math.ceil,
+        round: Math.round, sign: Math.sign,
+        min: Math.min, max: Math.max
+      };
+      const input = document.getElementById("calc-input");
+      const output = document.getElementById("calc-result");
+      const errorOutput = document.getElementById("calc-error");
+      const expressionInput = document.getElementById("expression-input");
+      const canvas = document.getElementById("graph");
+      const context = canvas.getContext("2d");
+      const graphItems = [];
+      let radians = true;
+      let lastAnswer = 0;
+      let view = { x: 0, y: 0, scale: 48 };
+      let drag = null;
+      let resizeObserver;
+
+      function tokenize(source) {
+        const tokens = [];
+        let index = 0;
+        while (index < source.length) {
+          const rest = source.slice(index);
+          if (/^\s+/.test(rest)) {
+            index += rest.match(/^\s+/)[0].length;
+            continue;
+          }
+          const number = rest.match(/^(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?/i);
+          const identifier = rest.match(/^[a-zA-Z_][a-zA-Z_0-9]*/);
+          if (number) {
+            tokens.push({ type: "number", value: Number(number[0]) });
+            index += number[0].length;
+          } else if (identifier) {
+            tokens.push({ type: "name", value: identifier[0].toLowerCase() });
+            index += identifier[0].length;
+          } else if ("+-*/^(),!".includes(source[index])) {
+            tokens.push({ type: source[index], value: source[index] });
+            index += 1;
+          } else {
+            throw new Error(`Karakter tidak dikenal: "${source[index]}"`);
+          }
+        }
+        tokens.push({ type: "end", value: "" });
+        return tokens;
+      }
+
+      function parse(source, xValue = 0) {
+        const tokens = tokenize(source);
+        let position = 0;
+        const peek = () => tokens[position];
+        const take = (type) => {
+          if (peek().type !== type) throw new Error(`Ekspresi tidak lengkap di dekat "${peek().value || "akhir"}"`);
+          return tokens[position++];
+        };
+        const expression = () => {
+          let value = product();
+          while (peek().type === "+" || peek().type === "-") {
+            const operator = tokens[position++].type;
+            const right = product();
+            value = operator === "+" ? value + right : value - right;
+          }
+          return value;
+        };
+        const startsValue = () => peek().type === "number" || peek().type === "name" || peek().type === "(";
+        const product = () => {
+          let value = unary();
+          while (peek().type === "*" || peek().type === "/" || startsValue()) {
+            const operator = peek().type === "*" || peek().type === "/" ? tokens[position++].type : "*";
+            const right = unary();
+            value = operator === "/" ? value / right : value * right;
+          }
+          return value;
+        };
+        const unary = () => {
+          if (peek().type === "+") {
+            position++;
+            return unary();
+          }
+          if (peek().type === "-") {
+            position++;
+            return -unary();
+          }
+          return power();
+        };
+        const power = () => {
+          let value = primary();
+          if (peek().type === "^") {
+            position++;
+            value = Math.pow(value, unary());
+          }
+          while (peek().type === "!") {
+            position++;
+            if (value < 0 || !Number.isInteger(value) || value > 170) throw new Error("Faktorial hanya berlaku untuk bilangan bulat 0–170");
+            let result = 1;
+            for (let i = 2; i <= value; i++) result *= i;
+            value = result;
+          }
+          return value;
+        };
+        const primary = () => {
+          if (peek().type === "number") return take("number").value;
+          if (peek().type === "(") {
+            take("(");
+            const value = expression();
+            take(")");
+            return value;
+          }
+          if (peek().type === "name") {
+            const name = take("name").value;
+            if (peek().type === "(") {
+              take("(");
+              const args = [];
+              if (peek().type !== ")") {
+                args.push(expression());
+                while (peek().type === ",") {
+                  take(",");
+                  args.push(expression());
+                }
+              }
+              take(")");
+              const fn = Object.hasOwn(functions, name) ? functions[name] : null;
+              if (!fn) throw new Error(`Fungsi "${name}" tidak dikenal`);
+              if ((name === "min" || name === "max") ? args.length < 1 : args.length !== 1) {
+                throw new Error(name === "min" || name === "max" ? `${name} membutuhkan minimal satu nilai` : `${name} membutuhkan satu nilai`);
+              }
+              let argument = args[0];
+              if (!radians && ["sin", "cos", "tan"].includes(name)) argument = argument * Math.PI / 180;
+              let result = fn(...(name === "min" || name === "max" ? args : [argument]));
+              if (!radians && ["asin", "acos", "atan"].includes(name)) result *= 180 / Math.PI;
+              return result;
+            }
+            if (name === "x") return xValue;
+            if (name === "pi") return Math.PI;
+            if (name === "e") return Math.E;
+            if (name === "ans") return lastAnswer;
+            throw new Error(`Nama "${name}" tidak dikenal`);
+          }
+          throw new Error(`Ekspresi tidak valid di dekat "${peek().value || "akhir"}"`);
+        };
+
+        if (!source.trim()) throw new Error("Masukkan ekspresi terlebih dahulu");
+        const result = expression();
+        if (peek().type !== "end") throw new Error(`Bagian "${peek().value}" tidak dipahami`);
+        return result;
+      }
+
+      function format(value) {
+        if (Number.isNaN(value)) return "Tidak terdefinisi";
+        if (!Number.isFinite(value)) return value > 0 ? "Tak terhingga" : "−Tak terhingga";
+        if (Object.is(value, -0)) return "0";
+        return Number(value.toPrecision(10)).toLocaleString("id-ID", { maximumFractionDigits: 10 });
+      }
+
+      function calculate() {
+        errorOutput.textContent = "";
+        try {
+          const result = parse(input.value);
+          output.textContent = format(result);
+          if (Number.isFinite(result)) lastAnswer = result;
+        } catch (error) {
+          errorOutput.textContent = error.message;
+          output.textContent = "—";
+        }
+      }
+
+      document.getElementById("keypad").addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button) return;
+        const action = button.dataset.action;
+        if (action === "clear") {
+          input.value = "";
+          errorOutput.textContent = "";
+          output.textContent = "0";
+        } else if (action === "backspace") {
+          input.value = input.value.slice(0, -1);
+        } else if (action === "calculate") {
+          calculate();
+          return;
+        } else {
+          const start = input.selectionStart ?? input.value.length;
+          const end = input.selectionEnd ?? input.value.length;
+          input.setRangeText(button.dataset.insert, start, end, "end");
+        }
+        input.focus();
+      });
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          calculate();
+        } else if (event.key === "Escape") {
+          input.value = "";
+          errorOutput.textContent = "";
+          output.textContent = "0";
+        }
+      });
+      document.getElementById("angle-toggle").addEventListener("click", (event) => {
+        radians = !radians;
+        event.currentTarget.textContent = radians ? "RAD" : "DEG";
+        event.currentTarget.setAttribute("aria-label", `Mode sudut ${radians ? "radian" : "derajat"}`);
+        if (input.value.trim()) calculate();
+        drawGraph();
+      });
+
+      function niceStep(raw) {
+        const power = Math.pow(10, Math.floor(Math.log10(raw)));
+        const fraction = raw / power;
+        return (fraction < 1.5 ? 1 : fraction < 3.5 ? 2 : fraction < 7.5 ? 5 : 10) * power;
+      }
+
+      function drawGraph() {
+        const rect = canvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(rect.width * ratio);
+        canvas.height = Math.round(rect.height * ratio);
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        const width = rect.width;
+        const height = rect.height;
+        const centerX = width / 2 - view.x * view.scale;
+        const centerY = height / 2 + view.y * view.scale;
+        context.clearRect(0, 0, width, height);
+        context.fillStyle = "#111a2e";
+        context.fillRect(0, 0, width, height);
+
+        const step = niceStep(82 / view.scale);
+        context.lineWidth = 1;
+        context.font = "11px Inter, ui-sans-serif, system-ui, sans-serif";
+        context.textBaseline = "top";
+        for (let x = centerX % (step * view.scale); x < width; x += step * view.scale) {
+          const value = (x - centerX) / view.scale;
+          context.strokeStyle = Math.abs(x - centerX) < 0.5 ? "#72809d" : "#26334b";
+          context.beginPath();
+          context.moveTo(x, 0);
+          context.lineTo(x, height);
+          context.stroke();
+          if (Math.abs(x - centerX) >= 0.5 && x > 24) {
+            context.fillStyle = "#8491a8";
+            context.fillText(Number(value.toPrecision(4)).toString(), x + 5, Math.max(4, Math.min(centerY + 6, height - 19)));
+          }
+        }
+        for (let y = centerY % (step * view.scale); y < height; y += step * view.scale) {
+          const value = (centerY - y) / view.scale;
+          context.strokeStyle = Math.abs(y - centerY) < 0.5 ? "#72809d" : "#26334b";
+          context.beginPath();
+          context.moveTo(0, y);
+          context.lineTo(width, y);
+          context.stroke();
+          if (Math.abs(y - centerY) >= 0.5 && y > 12) {
+            context.fillStyle = "#8491a8";
+            context.fillText(Number(value.toPrecision(4)).toString(), Math.max(4, Math.min(centerX + 7, width - 32)), y + 4);
+          }
+        }
+
+        for (const item of graphItems) {
+          context.beginPath();
+          context.strokeStyle = item.color;
+          context.lineWidth = 2.4;
+          context.lineJoin = "round";
+          context.shadowColor = item.color;
+          context.shadowBlur = 7;
+          let drawing = false;
+          let previousY = null;
+          for (let px = 0; px <= width; px += 1.5) {
+            const x = (px - centerX) / view.scale;
+            const y = parse(item.expression, x);
+            const py = centerY - y * view.scale;
+            if (!Number.isFinite(py) || py < -height * 3 || py > height * 4 ||
+                (previousY !== null && Math.abs(py - previousY) > height * 0.8)) {
+              drawing = false;
+              previousY = null;
+              continue;
+            }
+            if (!drawing) {
+              context.moveTo(px, py);
+              drawing = true;
+            } else {
+              context.lineTo(px, py);
+            }
+            previousY = py;
+          }
+          context.stroke();
+          context.shadowBlur = 0;
+        }
+      }
+
+      function renderList() {
+        const list = document.getElementById("function-list");
+        list.replaceChildren();
+        graphItems.forEach((item, index) => {
+          const row = document.createElement("li");
+          row.className = "function-item";
+          const swatch = document.createElement("span");
+          swatch.className = "function-swatch";
+          swatch.style.backgroundColor = item.color;
+          const label = document.createElement("span");
+          label.className = "function-label";
+          label.textContent = `y = ${item.expression}`;
+          const remove = document.createElement("button");
+          remove.className = "remove-function";
+          remove.type = "button";
+          remove.setAttribute("aria-label", `Hapus fungsi y = ${item.expression}`);
+          remove.textContent = "×";
+          remove.addEventListener("click", () => {
+            graphItems.splice(index, 1);
+            renderList();
+            drawGraph();
+          });
+          row.append(swatch, label, remove);
+          list.append(row);
+        });
+      }
+
+      document.getElementById("expression-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        let expression = expressionInput.value.trim().replace(/^y\s*=\s*/i, "");
+        const help = document.querySelector(".expression-help");
+        help.classList.remove("error-text");
+        if (!expression) {
+          help.textContent = "Tulis fungsi terlebih dahulu, misalnya sin(x) atau x^2.";
+          help.classList.add("error-text");
+          expressionInput.focus();
+          return;
+        }
+        try {
+          parse(expression, 0.37);
+        } catch (error) {
+          help.textContent = error.message;
+          help.classList.add("error-text");
+          expressionInput.focus();
+          return;
+        }
+        graphItems.push({ expression, color: COLORS[graphItems.length % COLORS.length] });
+        expressionInput.value = "";
+        help.innerHTML = 'Contoh: <code>sin(x)</code>, <code>x^2 - 3</code>, <code>1/x</code>';
+        renderList();
+        drawGraph();
+      });
+
+      document.getElementById("clear-functions").addEventListener("click", () => {
+        graphItems.length = 0;
+        renderList();
+        drawGraph();
+      });
+      document.getElementById("zoom-in").addEventListener("click", () => {
+        view.scale = Math.min(view.scale * 1.25, 400);
+        drawGraph();
+      });
+      document.getElementById("zoom-out").addEventListener("click", () => {
+        view.scale = Math.max(view.scale / 1.25, 8);
+        drawGraph();
+      });
+      document.getElementById("reset-view").addEventListener("click", () => {
+        view = { x: 0, y: 0, scale: 48 };
+        drawGraph();
+      });
+      canvas.addEventListener("wheel", (event) => {
+        event.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const pointerX = event.clientX - rect.left - rect.width / 2;
+        const pointerY = event.clientY - rect.top - rect.height / 2;
+        const factor = event.deltaY < 0 ? 1.12 : 1 / 1.12;
+        const nextScale = Math.max(8, Math.min(400, view.scale * factor));
+        view.x += pointerX / view.scale - pointerX / nextScale;
+        view.y += pointerY / view.scale - pointerY / nextScale;
+        view.scale = nextScale;
+        drawGraph();
+      }, { passive: false });
+      canvas.addEventListener("pointerdown", (event) => {
+        drag = { x: event.clientX, y: event.clientY, viewX: view.x, viewY: view.y };
+        canvas.setPointerCapture(event.pointerId);
+        canvas.classList.add("is-dragging");
+      });
+      canvas.addEventListener("pointermove", (event) => {
+        const rect = canvas.getBoundingClientRect();
+        if (drag) {
+          view.x = drag.viewX - (event.clientX - drag.x) / view.scale;
+          view.y = drag.viewY + (event.clientY - drag.y) / view.scale;
+          drawGraph();
+        } else {
+          const x = (event.clientX - rect.left - rect.width / 2) / view.scale + view.x;
+          const y = -(event.clientY - rect.top - rect.height / 2) / view.scale + view.y;
+          document.getElementById("coordinates").textContent = `x: ${x.toFixed(2)}   y: ${y.toFixed(2)}`;
+        }
+      });
+      const endDrag = () => {
+        drag = null;
+        canvas.classList.remove("is-dragging");
+      };
+      canvas.addEventListener("pointerup", endDrag);
+      canvas.addEventListener("pointercancel", endDrag);
+
+      if ("ResizeObserver" in window) {
+        resizeObserver = new ResizeObserver(drawGraph);
+        resizeObserver.observe(canvas);
+      } else {
+        window.addEventListener("resize", drawGraph);
+      }
+      graphItems.push({ expression: "sin(x)", color: COLORS[0] });
+      renderList();
+      drawGraph();
+    })();
+  </script>
+</body>
+</html>
