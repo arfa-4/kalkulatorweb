@@ -35,6 +35,7 @@
           <div class="result-row">
             <span id="calc-error" class="calc-error" role="status" aria-live="polite"></span>
             <output id="calc-result" for="calc-input">0</output>
+            <button class="fraction-toggle" id="fraction-toggle" type="button" aria-label="Tampilkan hasil sebagai pecahan" aria-pressed="false">a⁄b</button>
           </div>
         </div>
 
@@ -44,33 +45,38 @@
           <button class="key key-function" data-insert="tan(">tan</button>
           <button class="key key-function" data-insert="sqrt(">√</button>
           <button class="key key-function" data-insert="^">xʸ</button>
+          <button class="key key-function" data-insert="asin(">asin</button>
+          <button class="key key-function" data-insert="acos(">acos</button>
+          <button class="key key-function" data-insert="atan(">atan</button>
+          <button class="key key-function" data-insert="!">n!</button>
           <button class="key key-function" data-action="clear">AC</button>
           <button class="key key-function" data-insert="(">(</button>
           <button class="key key-function" data-insert=")">)</button>
           <button class="key key-function" data-insert="pi">π</button>
           <button class="key key-function" data-insert="e">e</button>
+          <button class="key key-function" data-insert="log(">log</button>
           <button class="key" data-insert="7">7</button>
           <button class="key" data-insert="8">8</button>
           <button class="key" data-insert="9">9</button>
           <button class="key key-operator" data-insert="/">÷</button>
-          <button class="key key-function" data-insert="log(">log</button>
+          <button class="key key-function" data-insert="ln(">ln</button>
+          <button class="key key-function" data-action="backspace" aria-label="Hapus karakter terakhir">⌫</button>
           <button class="key" data-insert="4">4</button>
           <button class="key" data-insert="5">5</button>
           <button class="key" data-insert="6">6</button>
           <button class="key key-operator" data-insert="*">×</button>
-          <button class="key key-function" data-insert="ln(">ln</button>
           <button class="key" data-insert="1">1</button>
           <button class="key" data-insert="2">2</button>
           <button class="key" data-insert="3">3</button>
           <button class="key key-operator" data-insert="-">−</button>
-          <button class="key key-function" data-action="backspace" aria-label="Hapus karakter terakhir">⌫</button>
+          <button class="key key-function" data-action="fraction" aria-label="Masukkan templat pecahan" title="Sisipkan pembilang dan penyebut">a⁄b</button>
           <button class="key key-function" data-insert="Ans">Ans</button>
           <button class="key" data-insert="0">0</button>
           <button class="key" data-insert=".">.</button>
           <button class="key key-operator" data-insert="+">+</button>
           <button class="key key-equals" data-action="calculate" aria-label="Hitung">=</button>
         </div>
-        <p class="keyboard-hint">Tekan <kbd>Enter</kbd> untuk menghitung</p>
+        <p class="keyboard-hint">Tekan <kbd>Enter</kbd> untuk menghitung · Tombol <kbd>a⁄b</kbd> untuk pecahan</p>
       </aside>
 
       <section class="graph-panel panel" aria-labelledby="graph-title">
@@ -133,6 +139,8 @@
       const graphItems = [];
       let radians = true;
       let lastAnswer = 0;
+      let lastResult = 0;
+      let showFraction = false;
       let view = { x: 0, y: 0, scale: 48 };
       let drag = null;
       let resizeObserver;
@@ -272,14 +280,67 @@
         return Number(value.toPrecision(10)).toLocaleString("id-ID", { maximumFractionDigits: 10 });
       }
 
+      function formatFraction(value) {
+        if (!Number.isFinite(value)) return "Tidak ada pecahan";
+        if (value === 0) return "0";
+        if (Math.abs(value) > Number.MAX_SAFE_INTEGER) return format(value);
+
+        const negative = value < 0;
+        let remainder = Math.abs(value);
+        let previousNumerator = 0;
+        let numerator = 1;
+        let previousDenominator = 1;
+        let denominator = 0;
+        const maxDenominator = 1000000;
+
+        for (let iteration = 0; iteration < 32; iteration++) {
+          const whole = Math.floor(remainder);
+          const nextNumerator = whole * numerator + previousNumerator;
+          const nextDenominator = whole * denominator + previousDenominator;
+          if (nextDenominator > maxDenominator) {
+            const multiplier = Math.floor((maxDenominator - previousDenominator) / denominator);
+            if (multiplier > 0) {
+              numerator = multiplier * numerator + previousNumerator;
+              denominator = multiplier * denominator + previousDenominator;
+            }
+            break;
+          }
+          previousNumerator = numerator;
+          numerator = nextNumerator;
+          previousDenominator = denominator;
+          denominator = nextDenominator;
+          const decimalPart = remainder - whole;
+          if (decimalPart < 1e-14) break;
+          remainder = 1 / decimalPart;
+        }
+
+        if (!denominator || !Number.isSafeInteger(numerator)) return format(value);
+        const sign = negative ? "−" : "";
+        const approximation = numerator / denominator;
+        const isApproximation = Math.abs(approximation - Math.abs(value)) > 1e-14 * Math.max(1, Math.abs(value));
+        return `${isApproximation ? "≈ " : ""}${sign}${numerator}/${denominator}`;
+      }
+
+      function updateResult() {
+        output.textContent = showFraction ? formatFraction(lastResult) : format(lastResult);
+        document.getElementById("fraction-toggle").setAttribute("aria-pressed", String(showFraction));
+        document.getElementById("fraction-toggle").setAttribute(
+          "aria-label",
+          `Tampilkan hasil sebagai ${showFraction ? "desimal" : "pecahan"}`
+        );
+      }
+
       function calculate() {
         errorOutput.textContent = "";
         try {
           const result = parse(input.value);
-          output.textContent = format(result);
+          lastResult = result;
+          updateResult();
           if (Number.isFinite(result)) lastAnswer = result;
         } catch (error) {
           errorOutput.textContent = error.message;
+          lastResult = Number.NaN;
+          updateResult();
           output.textContent = "—";
         }
       }
@@ -291,9 +352,15 @@
         if (action === "clear") {
           input.value = "";
           errorOutput.textContent = "";
-          output.textContent = "0";
+          lastResult = 0;
+          updateResult();
         } else if (action === "backspace") {
           input.value = input.value.slice(0, -1);
+        } else if (action === "fraction") {
+          const start = input.selectionStart ?? input.value.length;
+          const end = input.selectionEnd ?? input.value.length;
+          input.setRangeText("()/()", start, end, "select");
+          input.setSelectionRange(start + 1, start + 1);
         } else if (action === "calculate") {
           calculate();
           return;
@@ -311,8 +378,30 @@
         } else if (event.key === "Escape") {
           input.value = "";
           errorOutput.textContent = "";
-          output.textContent = "0";
+          lastResult = 0;
+          updateResult();
+        } else if (event.key === "Tab" && input.selectionStart === input.selectionEnd) {
+          const caret = input.selectionStart;
+          if (event.shiftKey) {
+            const slash = input.value.lastIndexOf("/", caret);
+            const numeratorOpen = input.value.lastIndexOf("(", slash - 1);
+            if (slash >= 0 && numeratorOpen >= 0 && caret > slash) {
+              event.preventDefault();
+              input.setSelectionRange(numeratorOpen + 1, numeratorOpen + 1);
+            }
+          } else {
+            const slash = input.value.indexOf("/", caret);
+            const denominatorOpen = input.value.indexOf("(", slash + 1);
+            if (slash >= 0 && denominatorOpen >= 0 && caret <= slash) {
+              event.preventDefault();
+              input.setSelectionRange(denominatorOpen + 1, denominatorOpen + 1);
+            }
+          }
         }
+      });
+      document.getElementById("fraction-toggle").addEventListener("click", () => {
+        showFraction = !showFraction;
+        updateResult();
       });
       document.getElementById("angle-toggle").addEventListener("click", (event) => {
         radians = !radians;

@@ -224,6 +224,8 @@ h2 {
 }
 
 #calc-result {
+  min-width: 0;
+  flex: 1;
   overflow: hidden;
   color: var(--mint);
   font-size: clamp(24px, 4vw, 32px);
@@ -231,6 +233,32 @@ h2 {
   letter-spacing: -1.3px;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: right;
+}
+
+.fraction-toggle {
+  flex: 0 0 auto;
+  min-width: 35px;
+  padding: 5px 6px;
+  border: 1px solid #354560;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #253650, #1a2940);
+  box-shadow: 0 2px 0 #0b1424, inset 0 1px rgba(255, 255, 255, 0.08);
+  color: #aebbd0;
+  cursor: pointer;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 10px;
+  transition: transform 120ms ease, box-shadow 120ms ease, color 120ms ease;
+}
+
+.fraction-toggle:hover,
+.fraction-toggle[aria-pressed="true"] {
+  color: var(--mint);
+}
+
+.fraction-toggle:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #0b1424;
 }
 
 .calc-error {
